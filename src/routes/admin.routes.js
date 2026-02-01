@@ -3,7 +3,13 @@ const auth = require("../middleware/auth.middleware");
 const rbac = require("../middleware/rbac.middleware");
 const highPrivilege = require("../middleware/highPrivilege.middleware");
 const adminCtrl = require("../controllers/admin.controller");
-const { adminCreateUserRules, validate } = require("../utils/authValidations");
+const {
+  adminCreateUserRules,
+  adminCreateRoleRules,
+  adminCreatePermissionRules,
+  adminAddRolePermissionRules,
+  validate,
+} = require("../utils/authValidations");
 
 /**
  * @swagger
@@ -214,6 +220,180 @@ router.delete(
   auth,
   highPrivilege("DELETE_USER"),
   adminCtrl.deleteUser
+);
+
+/**
+ * @swagger
+ * /admin/roles:
+ *   post:
+ *     tags: [Admin]
+ *     summary: Create a role.
+ *     description: Adds a new role (e.g. MANAGER). Requires CHANGE_ROLE permission.
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 maxLength: 50
+ *                 example: "MANAGER"
+ *     responses:
+ *       201:
+ *         description: Role created.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                   example: "Role created"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                     name:
+ *                       type: string
+ *       400:
+ *         description: Validation failed or role name already exists.
+ *       401:
+ *         description: Unauthorized.
+ *       403:
+ *         description: Forbidden (missing CHANGE_ROLE).
+ */
+router.post(
+  "/roles",
+  auth,
+  rbac("CHANGE_ROLE"),
+  adminCreateRoleRules,
+  validate,
+  adminCtrl.createRole
+);
+
+/**
+ * @swagger
+ * /admin/permissions:
+ *   post:
+ *     tags: [Admin]
+ *     summary: Create a permission.
+ *     description: Adds a new permission (e.g. EDIT_POSTS). Requires CHANGE_ROLE permission.
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 maxLength: 100
+ *                 example: "EDIT_POSTS"
+ *     responses:
+ *       201:
+ *         description: Permission created.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                   example: "Permission created"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                     name:
+ *                       type: string
+ *       400:
+ *         description: Validation failed or permission name already exists.
+ *       401:
+ *         description: Unauthorized.
+ *       403:
+ *         description: Forbidden (missing CHANGE_ROLE).
+ */
+router.post(
+  "/permissions",
+  auth,
+  rbac("CHANGE_ROLE"),
+  adminCreatePermissionRules,
+  validate,
+  adminCtrl.createPermission
+);
+
+/**
+ * @swagger
+ * /admin/role-permissions:
+ *   post:
+ *     tags: [Admin]
+ *     summary: Assign a permission to a role (role_permissions).
+ *     description: Links a permission to a role. Requires CHANGE_ROLE permission.
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - role_id
+ *               - permission_id
+ *             properties:
+ *               role_id:
+ *                 type: integer
+ *                 minimum: 1
+ *                 description: Role id from roles table.
+ *               permission_id:
+ *                 type: integer
+ *                 minimum: 1
+ *                 description: Permission id from permissions table.
+ *     responses:
+ *       201:
+ *         description: Permission assigned to role.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                   example: "Permission assigned to role"
+ *       400:
+ *         description: Validation failed or permission already assigned to role.
+ *       401:
+ *         description: Unauthorized.
+ *       403:
+ *         description: Forbidden (missing CHANGE_ROLE).
+ *       404:
+ *         description: Role or permission not found.
+ */
+router.post(
+  "/role-permissions",
+  auth,
+  rbac("CHANGE_ROLE"),
+  adminAddRolePermissionRules,
+  validate,
+  adminCtrl.addRolePermission
 );
 
 module.exports = router;

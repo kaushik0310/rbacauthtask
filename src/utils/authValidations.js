@@ -48,6 +48,27 @@ const adminCreateUserRules = [
     .withMessage("Role must be ADMIN or USER"),
 ];
 
+const adminCreateRoleRules = [
+  body("name")
+    .notEmpty()
+    .trim()
+    .isLength({ max: 50 })
+    .withMessage("Role name required (max 50 characters)"),
+];
+
+const adminCreatePermissionRules = [
+  body("name")
+    .notEmpty()
+    .trim()
+    .isLength({ max: 100 })
+    .withMessage("Permission name required (max 100 characters)"),
+];
+
+const adminAddRolePermissionRules = [
+  body("role_id").isInt({ min: 1 }).withMessage("Valid role_id required"),
+  body("permission_id").isInt({ min: 1 }).withMessage("Valid permission_id required"),
+];
+
 module.exports = {
   validate,
   registerRules,
@@ -56,4 +77,7 @@ module.exports = {
   mfaVerifyRules,
   loginMfaRules,
   adminCreateUserRules,
+  adminCreateRoleRules,
+  adminCreatePermissionRules,
+  adminAddRolePermissionRules,
 };
