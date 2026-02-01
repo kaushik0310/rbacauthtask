@@ -78,7 +78,6 @@ exports.login = async (email, pwd) => {
     data: {
       accessToken,
       refreshToken,
-      expiresIn: "15m",
     },
   };
 };
