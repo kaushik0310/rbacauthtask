@@ -59,5 +59,6 @@ app.use("/auth/refresh", authLimiter);
 
 app.use("/auth", require("./routes/auth.routes"));
 app.use("/admin", require("./routes/admin.routes"));
+app.use("/users", require("./routes/user.routes"));
 
 module.exports = app;
