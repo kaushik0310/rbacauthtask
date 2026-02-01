@@ -30,8 +30,34 @@ exports.register = async (req, res) => {
 
 exports.login = async (req, res) => {
   try {
-    const { email, password: pwd, otp: otpCode } = req.body;
-    const result = await authService.login(email, pwd, otpCode);
+    const { email, password: pwd } = req.body;
+    const result = await authService.login(email, pwd);
+
+    if (!result.success) {
+      return responseHandler.error(
+        res,
+        { success: false, message: result.message },
+        result.statusCode
+      );
+    }
+    return responseHandler.success(res, {
+      success: true,
+      data: result.data,
+    });
+  } catch (error) {
+    console.log("error", error);
+    return responseHandler.error(
+      res,
+      { success: false, message: "Internal Server Error" },
+      500
+    );
+  }
+};
+
+exports.loginWithMfa = async (req, res) => {
+  try {
+    const { mfaToken, otp: otpCode } = req.body;
+    const result = await authService.loginWithMfa(mfaToken, otpCode);
 
     if (!result.success) {
       return responseHandler.error(

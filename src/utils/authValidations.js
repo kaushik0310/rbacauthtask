@@ -33,10 +33,16 @@ const refreshRules = [body("refreshToken").notEmpty().withMessage("Refresh token
 
 const mfaVerifyRules = [body("otp").notEmpty().withMessage("OTP required")];
 
+const loginMfaRules = [
+  body("mfaToken").notEmpty().withMessage("mfaToken required (from login when requiresMfa: true)"),
+  body("otp").notEmpty().withMessage("OTP required"),
+];
+
 module.exports = {
   validate,
   registerRules,
   loginRules,
   refreshRules,
   mfaVerifyRules,
+  loginMfaRules,
 };

@@ -4,6 +4,7 @@ const { accessSecret, refreshSecret } = require("../config/jwt");
 
 const ACCESS_EXPIRY = "15m";
 const REFRESH_EXPIRY_DAYS = 7;
+const MFA_TOKEN_EXPIRY = "5m";
 
 exports.generateAccessToken = (user) =>
   jwt.sign(
@@ -33,3 +34,17 @@ exports.verifyAccessToken = (token) =>
 
 exports.verifyRefreshToken = (token) =>
   jwt.verify(token, refreshSecret);
+
+/** Short-lived token returned when login requires MFA; used to complete login with OTP. */
+exports.generateMfaToken = (userId) =>
+  jwt.sign(
+    { id: userId, purpose: "mfa" },
+    accessSecret,
+    { expiresIn: MFA_TOKEN_EXPIRY }
+  );
+
+exports.verifyMfaToken = (token) => {
+  const payload = jwt.verify(token, accessSecret);
+  if (payload.purpose !== "mfa") throw new Error("Invalid MFA token");
+  return payload;
+};

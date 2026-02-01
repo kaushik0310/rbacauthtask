@@ -7,6 +7,7 @@ const {
   registerRules,
   loginRules,
   refreshRules,
+  loginMfaRules,
   mfaVerifyRules,
 } = require("../utils/authValidations");
 
@@ -75,7 +76,7 @@ router.post("/register", registerRules, validate, ctrl.register);
  *   post:
  *     tags: [Auth]
  *     summary: Login (returns tokens or requires MFA).
- *     description: Authenticates with email and password. If MFA is enabled, first call returns requiresMfa true; send same credentials with otp to complete login.
+ *     description: Authenticates with email and password. If MFA is enabled, returns requiresMfa true and a short-lived mfaToken; then call POST /auth/login/mfa with mfaToken and otp (from your authenticator app) to get tokens.
  *     requestBody:
  *       required: true
  *       content:
@@ -93,12 +94,9 @@ router.post("/register", registerRules, validate, ctrl.register);
  *               password:
  *                 type: string
  *                 example: "strongPassword123"
- *               otp:
- *                 type: string
- *                 description: TOTP code when MFA is enabled (required on second step).
  *     responses:
  *       200:
- *         description: Success. Either tokens or requires MFA.
+ *         description: Success. Either tokens (no MFA) or requiresMfa true with mfaToken.
  *         content:
  *           application/json:
  *             schema:
@@ -117,8 +115,10 @@ router.post("/register", registerRules, validate, ctrl.register);
  *                     requiresMfa:
  *                       type: boolean
  *                       example: true
+ *                     mfaToken:
+ *                       type: string
  *       401:
- *         description: Invalid credentials or invalid OTP.
+ *         description: Invalid credentials.
  *         content:
  *           application/json:
  *             schema:
@@ -130,6 +130,51 @@ router.post("/register", registerRules, validate, ctrl.register);
  *                   type: string
  */
 router.post("/login", loginRules, validate, ctrl.login);
+
+/**
+ * @swagger
+ * /auth/login/mfa:
+ *   post:
+ *     tags: [Auth]
+ *     summary: Complete login with MFA (app OTP).
+ *     description: When POST /auth/login returns requiresMfa true and mfaToken, call this with that mfaToken and the 6-digit OTP from your authenticator app to get access and refresh tokens. mfaToken expires in 5 minutes.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - mfaToken
+ *               - otp
+ *             properties:
+ *               mfaToken:
+ *                 type: string
+ *                 description: Token returned when login responded with requiresMfa true.
+ *               otp:
+ *                 type: string
+ *                 description: Current 6-digit code from authenticator app (e.g. 2FAS).
+ *     responses:
+ *       200:
+ *         description: Tokens issued.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 accessToken:
+ *                   type: string
+ *                 refreshToken:
+ *                   type: string
+ *                 expiresIn:
+ *                   type: string
+ *                   example: "15m"
+ *       400:
+ *         description: mfaToken or otp missing.
+ *       401:
+ *         description: Invalid or expired mfaToken, or invalid OTP.
+ */
+router.post("/login/mfa", loginMfaRules, validate, ctrl.loginWithMfa);
 
 /**
  * @swagger
