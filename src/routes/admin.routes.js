@@ -3,6 +3,7 @@ const auth = require("../middleware/auth.middleware");
 const rbac = require("../middleware/rbac.middleware");
 const highPrivilege = require("../middleware/highPrivilege.middleware");
 const adminCtrl = require("../controllers/admin.controller");
+const { adminCreateUserRules, validate } = require("../utils/authValidations");
 
 /**
  * @swagger
@@ -61,6 +62,69 @@ const adminCtrl = require("../controllers/admin.controller");
  *                   type: string
  *                 code:
  *                   type: string
+ */
+router.post(
+  "/users",
+  auth,
+  rbac("CHANGE_ROLE"),
+  adminCreateUserRules,
+  validate,
+  adminCtrl.createUser
+);
+
+/**
+ * @swagger
+ * /admin/users:
+ *   post:
+ *     tags: [Admin]
+ *     summary: Create a user (admin or regular).
+ *     description: Only admins with CHANGE_ROLE permission can create users. Use this to add new admins or regular users. Public register always creates USER; this endpoint allows creating ADMIN.
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *               - role
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: "admin2@example.com"
+ *               password:
+ *                 type: string
+ *                 format: password
+ *                 description: Min 8 characters
+ *                 example: "securePassword123"
+ *               role:
+ *                 type: string
+ *                 enum: [ADMIN, USER]
+ *                 description: Role to assign to the new user.
+ *     responses:
+ *       201:
+ *         description: User created.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "User created"
+ *       400:
+ *         description: Validation failed, invalid role, or email already registered.
+ *       401:
+ *         description: Unauthorized (missing or invalid access token).
+ *       403:
+ *         description: Forbidden (missing CHANGE_ROLE permission).
  */
 router.get("/users", auth, rbac("VIEW_USERS"), adminCtrl.listUsers);
 

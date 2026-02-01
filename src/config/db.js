@@ -1,15 +1,5 @@
  const mysql = require("mysql2/promise");
 
-// module.exports = mysql.createPool({
-//   host: process.env.DB_HOST || "localhost",
-//   user: process.env.DB_USER || "root",
-//   password: process.env.DB_PASSWORD || "",
-//   database: process.env.DB_NAME || "auth_db",
-//   waitForConnections: true,
-//   connectionLimit: 10,
-//   queueLimit: 0,
-// });
-
 
 // DB config
 const dbConfig = {
@@ -26,7 +16,7 @@ const dbConfig = {
 
 const connection = () => {
   pool = mysql.createPool(dbConfig)
-  console.log(`DB Connected`, dbConfig.database)
+  console.log(`DB Connected ${process.env.DB_NAME}`)
   return pool
 }
 

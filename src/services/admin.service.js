@@ -1,8 +1,12 @@
+const password = require("../utils/password");
+
 const getPool = () => {
   const pool = global.pool;
   if (!pool) throw new Error("Database pool not initialized");
   return pool;
 };
+
+const ROLE_IDS = { ADMIN: 1, USER: 2 };
 
 /**
  * List all users (id, email, role_id, mfa_enabled).
@@ -38,4 +42,34 @@ exports.deleteUser = async (userId, currentUserId) => {
   }
 
   return { success: true, message: "User deleted" };
+};
+
+/**
+ * Create a user (admin or regular). Only admins with CHANGE_ROLE can call this.
+ * @param {string} email
+ * @param {string} pwd - Plain password (will be hashed)
+ * @param {string} role - "ADMIN" or "USER"
+ * @returns {{ success: true, message: string, statusCode: number }} | {{ success: false, message: string, statusCode: number }}
+ */
+exports.createUser = async (email, pwd, role) => {
+  const pool = getPool();
+
+  const roleId = ROLE_IDS[role];
+  if (!roleId) {
+    return { success: false, message: "Role must be ADMIN or USER", statusCode: 400 };
+  }
+
+  const [[existing]] = await pool.execute("SELECT id FROM users WHERE email = ?", [
+    email,
+  ]);
+  if (existing) {
+    return { success: false, message: "Email already registered", statusCode: 400 };
+  }
+
+  const hash = await password.hash(pwd);
+  await pool.execute(
+    "INSERT INTO users (email, password_hash, role_id) VALUES (?, ?, ?)",
+    [email, hash, roleId]
+  );
+  return { success: true, message: "User created", statusCode: 201 };
 };

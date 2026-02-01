@@ -1,5 +1,23 @@
 const adminService = require("../services/admin.service");
 
+exports.createUser = async (req, res) => {
+  try {
+    const { email, password: pwd, role } = req.body;
+    const result = await adminService.createUser(email, pwd, role);
+
+    if (!result.success) {
+      return res.status(result.statusCode).json({
+        success: false,
+        message: result.message,
+      });
+    }
+    return res.status(201).json({ success: true, message: result.message });
+  } catch (error) {
+    console.log("error", error);
+    res.status(500).json({ error: "Internal Server Error", code: "SERVER_ERROR" });
+  }
+};
+
 exports.listUsers = async (req, res) => {
   try {
     const result = await adminService.listUsers();

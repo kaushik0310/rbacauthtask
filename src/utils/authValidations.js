@@ -38,6 +38,16 @@ const loginMfaRules = [
   body("otp").notEmpty().withMessage("OTP required"),
 ];
 
+const adminCreateUserRules = [
+  body("email").isEmail().normalizeEmail().withMessage("Valid email required"),
+  body("password")
+    .isLength({ min: 8 })
+    .withMessage("Password must be at least 8 characters"),
+  body("role")
+    .isIn(["ADMIN", "USER"])
+    .withMessage("Role must be ADMIN or USER"),
+];
+
 module.exports = {
   validate,
   registerRules,
@@ -45,4 +55,5 @@ module.exports = {
   refreshRules,
   mfaVerifyRules,
   loginMfaRules,
+  adminCreateUserRules,
 };
