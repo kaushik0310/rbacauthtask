@@ -20,7 +20,7 @@ module.exports = (permission) => {
       }
 
       try {
-        const [[user]] = await db.execute(
+        const [[user]] = await pool.execute(
           "SELECT mfa_secret, mfa_enabled FROM users WHERE id = ?",
           [req.user.id]
         );

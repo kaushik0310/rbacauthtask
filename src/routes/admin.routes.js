@@ -2,7 +2,7 @@ const router = require("express").Router();
 const auth = require("../middleware/auth.middleware");
 const rbac = require("../middleware/rbac.middleware");
 const highPrivilege = require("../middleware/highPrivilege.middleware");
-const db = require("../config/db");
+const adminCtrl = require("../controllers/admin.controller");
 
 /**
  * @swagger
@@ -62,12 +62,7 @@ const db = require("../config/db");
  *                 code:
  *                   type: string
  */
-router.get("/users", auth, rbac("VIEW_USERS"), async (req, res) => {
-  const [rows] = await db.execute(
-    "SELECT u.id, u.email, u.role_id, u.mfa_enabled FROM users u"
-  );
-  res.json({ users: rows });
-});
+router.get("/users", auth, rbac("VIEW_USERS"), adminCtrl.listUsers);
 
 /**
  * @swagger
@@ -154,19 +149,7 @@ router.delete(
   "/users/:id",
   auth,
   highPrivilege("DELETE_USER"),
-  async (req, res) => {
-    const userId = req.params.id;
-    if (userId === String(req.user.id)) {
-      return res.status(400).json({ error: "Cannot delete yourself", code: "SELF_DELETE" });
-    }
-    const [result] = await db.execute("DELETE FROM users WHERE id = ?", [
-      userId,
-    ]);
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ error: "User not found", code: "NOT_FOUND" });
-    }
-    res.json({ message: "User deleted" });
-  }
+  adminCtrl.deleteUser
 );
 
 module.exports = router;

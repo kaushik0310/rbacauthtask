@@ -8,7 +8,7 @@ module.exports = (permission) => {
     }
 
     try {
-      const [[roleRow]] = await db.execute(
+      const [[roleRow]] = await pool.execute(
         "SELECT id FROM roles WHERE name = ?",
         [req.user.role]
       );
@@ -16,7 +16,7 @@ module.exports = (permission) => {
         return sendError(res, 403, "Forbidden", "FORBIDDEN");
       }
 
-      const [permRows] = await db.execute(
+      const [permRows] = await pool.execute(
         `SELECT p.name FROM permissions p
          INNER JOIN role_permissions rp ON rp.permission_id = p.id
          WHERE rp.role_id = ? AND p.name = ?`,
