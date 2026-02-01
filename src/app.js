@@ -5,9 +5,10 @@ const rateLimit = require("express-rate-limit");
 const swaggerUi = require("swagger-ui-express");
 const swaggerJSDoc = require("swagger-jsdoc");
 const path = require("path");
+const db = require('./config/db')
 
 const app = express();
-
+global.pool = db.connection();
 const swaggerDefinition = {
   openapi: "3.0.0",
   info: {
@@ -16,7 +17,7 @@ const swaggerDefinition = {
     description: "Secure authentication and authorization with JWT, RBAC, and TOTP MFA.",
   },
   servers: [
-    { url: "http://localhost:3000", description: "Local" },
+    { url: "http://localhost:9766", description: "Local" },
   ],
   components: {
     securitySchemes: {
