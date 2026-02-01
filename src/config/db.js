@@ -16,7 +16,7 @@ const dbConfig = {
 
 const connection = () => {
   pool = mysql.createPool(dbConfig)
-  console.log(`DB Connected ${process.env.DB_NAME}`)
+  console.log("DB Connected", dbConfig.database || "(no database name set)")
   return pool
 }
 
