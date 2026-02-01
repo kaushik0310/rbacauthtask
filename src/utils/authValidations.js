@@ -44,8 +44,10 @@ const adminCreateUserRules = [
     .isLength({ min: 8 })
     .withMessage("Password must be at least 8 characters"),
   body("role")
-    .isIn(["ADMIN", "USER", "MANAGER"])
-    .withMessage("Role must be ADMIN or MANAGER or USER"),
+    .notEmpty()
+    .trim()
+    .isLength({ max: 50 })
+    .withMessage("Role name required (max 50 characters)"),
 ];
 
 const adminCreateRoleRules = [

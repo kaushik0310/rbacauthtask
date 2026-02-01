@@ -109,7 +109,7 @@ router.post(
  *                 example: "securePassword123"
  *               role:
  *                 type: string
- *                 enum: [ADMIN, USER]
+ *                 enum: [ADMIN, USER, MANAGER]
  *                 description: Role to assign to the new user.
  *     responses:
  *       201:

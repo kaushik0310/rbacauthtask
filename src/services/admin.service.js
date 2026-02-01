@@ -6,8 +6,6 @@ const getPool = () => {
   return pool;
 };
 
-const ROLE_IDS = { ADMIN: 1, USER: 2, MANAGER: 3 };
-
 /**
  * List all users (id, email, role_id, mfa_enabled).
  * @returns {{ success: true, users: Array }}
@@ -46,18 +44,27 @@ exports.deleteUser = async (userId, currentUserId) => {
 
 /**
  * Create a user (admin or regular). Only admins with CHANGE_ROLE can call this.
+ * Role is resolved from the roles table by name (e.g. ADMIN, USER, MANAGER).
  * @param {string} email
  * @param {string} pwd - Plain password (will be hashed)
- * @param {string} role - "ADMIN" or "USER"
+ * @param {string} role - Role name (must exist in roles table)
  * @returns {{ success: true, message: string, statusCode: number }} | {{ success: false, message: string, statusCode: number }}
  */
 exports.createUser = async (email, pwd, role) => {
   const pool = getPool();
-
-  const roleId = ROLE_IDS[role];
-  if (!roleId) {
-    return { success: false, message: "Role must be ADMIN or USER", statusCode: 400 };
+  const roleName = (role || "").trim();
+  if (!roleName) {
+    return { success: false, message: "Role name is required", statusCode: 400 };
   }
+
+  const [[roleRow]] = await pool.execute(
+    "SELECT id FROM roles WHERE name = ?",
+    [roleName]
+  );
+  if (!roleRow) {
+    return { success: false, message: "Role not found", statusCode: 400 };
+  }
+  const roleId = roleRow.id;
 
   const [[existing]] = await pool.execute("SELECT id FROM users WHERE email = ?", [
     email,
