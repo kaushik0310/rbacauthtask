@@ -141,7 +141,6 @@ exports.refresh = async (token) => {
     data: {
       accessToken,
       refreshToken: newRefreshToken,
-      expiresIn: "15m",
     },
   };
 };

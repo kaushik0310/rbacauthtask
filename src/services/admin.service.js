@@ -6,7 +6,7 @@ const getPool = () => {
   return pool;
 };
 
-const ROLE_IDS = { ADMIN: 1, USER: 2 };
+const ROLE_IDS = { ADMIN: 1, USER: 2, MANAGER: 3 };
 
 /**
  * List all users (id, email, role_id, mfa_enabled).
